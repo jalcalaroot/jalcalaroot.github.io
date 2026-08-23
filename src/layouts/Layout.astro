@@ -1,0 +1,106 @@
+---
+interface Props {
+	title: string;
+	description?: string;
+}
+
+const { title, description = 'Johan Alcalá — Cloud & DevOps Engineer' } = Astro.props;
+---
+
+<html lang="es">
+	<head>
+		<meta charset="utf-8" />
+		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+		<link rel="icon" href="/favicon.ico" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<meta name="generator" content={Astro.generator} />
+		<meta name="description" content={description} />
+		<link rel="preconnect" href="https://fonts.googleapis.com" />
+		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+		<link
+			href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+			rel="stylesheet"
+		/>
+		<title>{title}</title>
+	</head>
+	<body>
+		<div class="page">
+			<slot />
+		</div>
+	</body>
+</html>
+
+<style is:global>
+	:root {
+		--bg: #ffffff;
+		--bg-subtle: #f7f7f5;
+		--text: #1a1a1a;
+		--text-muted: #6b6b6b;
+		--border: #e6e6e3;
+		--accent: #2563eb;
+		--max-width: 700px;
+	}
+
+	* {
+		box-sizing: border-box;
+	}
+
+	html,
+	body {
+		margin: 0;
+		padding: 0;
+	}
+
+	body {
+		background: var(--bg);
+		color: var(--text);
+		font-family: 'Inter', system-ui, -apple-system, sans-serif;
+		line-height: 1.6;
+		-webkit-font-smoothing: antialiased;
+	}
+
+	.page {
+		max-width: var(--max-width);
+		margin: 0 auto;
+		padding: 4rem 1.5rem 5rem;
+	}
+
+	a {
+		color: var(--accent);
+		text-decoration: none;
+	}
+
+	a:hover {
+		text-decoration: underline;
+	}
+
+	h1,
+	h2,
+	h3 {
+		line-height: 1.25;
+		letter-spacing: -0.01em;
+	}
+
+	.nav {
+		display: flex;
+		gap: 1.5rem;
+		margin-bottom: 3rem;
+		font-size: 0.95rem;
+	}
+
+	.nav a {
+		color: var(--text-muted);
+	}
+
+	.nav a:hover {
+		color: var(--text);
+	}
+
+	footer {
+		margin-top: 5rem;
+		padding-top: 1.5rem;
+		border-top: 1px solid var(--border);
+		color: var(--text-muted);
+		font-size: 0.875rem;
+	}
+</style>
