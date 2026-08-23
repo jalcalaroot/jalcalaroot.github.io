@@ -9,7 +9,8 @@ const posts = (await getCollection('blog'))
 
 <Layout title="Johan Alcalá">
 	<header>
-		<h1>Johan Alcalá</h1>
+		<p class="prompt">guest@jalcalaroot:~$ whoami</p>
+		<h1>Johan Alcalá<span class="cursor">_</span></h1>
 		<p class="tagline">Cloud &amp; DevOps Engineer</p>
 		<p class="links">
 			<a href="https://github.com/jalcalaroot">GitHub</a>
@@ -60,9 +61,26 @@ const posts = (await getCollection('blog'))
 		margin-bottom: 3rem;
 	}
 
+	.prompt {
+		color: var(--text-muted);
+		font-size: 0.875rem;
+		margin: 0 0 0.5rem;
+	}
+
 	h1 {
 		font-size: 2rem;
 		margin: 0 0 0.25rem;
+	}
+
+	.cursor {
+		display: inline-block;
+		animation: blink 1s steps(1) infinite;
+	}
+
+	@keyframes blink {
+		50% {
+			opacity: 0;
+		}
 	}
 
 	.tagline {
