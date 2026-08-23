@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://jalcalaroot.github.io/sitemap-index.xml

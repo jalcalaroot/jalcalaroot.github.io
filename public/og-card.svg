@@ -1,0 +1,22 @@
+<svg width="1200" height="630" viewBox="0 0 1200 630" xmlns="http://www.w3.org/2000/svg">
+	<defs>
+		<style>
+			.mono { font-family: 'JetBrains Mono', 'Share Tech Mono', ui-monospace, 'Courier New', monospace; }
+		</style>
+	</defs>
+
+	<rect width="1200" height="630" fill="#000000" />
+	<rect x="1" y="1" width="1198" height="628" fill="none" stroke="#164a2a" stroke-width="2" />
+
+	<rect x="40" y="40" width="1120" height="550" rx="8" fill="rgba(0, 10, 2, 0.82)" stroke="#164a2a" stroke-width="1" />
+
+	<text x="90" y="220" class="mono" font-size="24" fill="#4b8a63">guest@jalcalaroot:~$ whoami</text>
+
+	<text x="90" y="300" class="mono" font-size="64" font-weight="700" fill="#7dffa0">Johan Alcalá_</text>
+
+	<text x="90" y="360" class="mono" font-size="28" fill="#c8ffd4">Senior Cloud Architect</text>
+	<text x="90" y="405" class="mono" font-size="28" fill="#c8ffd4">Multicloud (AWS &amp; Azure)</text>
+	<text x="90" y="450" class="mono" font-size="28" fill="#c8ffd4">Security, DevSecOps &amp; AI-Driven Cloud Solutions</text>
+
+	<text x="90" y="540" class="mono" font-size="20" fill="#00ff66">jalcalaroot.github.io</text>
+</svg>

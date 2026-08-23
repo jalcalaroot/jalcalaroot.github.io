@@ -11,7 +11,10 @@ const posts = (await getCollection('blog'))
 	<header>
 		<p class="prompt">guest@jalcalaroot:~$ whoami</p>
 		<h1>Johan Alcalá<span class="cursor">_</span></h1>
-		<p class="tagline">Cloud &amp; DevOps Engineer</p>
+		<p class="tagline">
+			Senior Cloud Architect | Multicloud (AWS &amp; Azure) | Security,
+			DevSecOps &amp; AI-Driven Cloud Solutions
+		</p>
 		<p class="links">
 			<a href="https://github.com/jalcalaroot">GitHub</a>
 			<span aria-hidden="true">·</span>
@@ -23,10 +26,49 @@ const posts = (await getCollection('blog'))
 
 	<section>
 		<p>
-			Trabajo con infraestructura en la nube — Azure, AWS, Terraform y
-			Kubernetes — diseñando y desplegando arquitecturas de red, cómputo y
-			bases de datos como código.
+			Diseño y opero infraestructura en la nube a nivel arquitectura —
+			multicloud (Azure y AWS), redes, cómputo y bases de datos como código
+			con Terraform y Kubernetes. Me enfoco en que esa infraestructura sea
+			segura por diseño: DevSecOps integrado al pipeline, no como un paso
+			aparte, y cada vez más apoyado en IA para acelerar el diseño, la
+			detección de problemas y la toma de decisiones en arquitecturas cloud.
 		</p>
+	</section>
+
+	<section>
+		<h2>Stack</h2>
+		<ul class="skills">
+			<li class="tag">Azure</li>
+			<li class="tag">AWS</li>
+			<li class="tag">Terraform</li>
+			<li class="tag">Kubernetes</li>
+			<li class="tag">DevSecOps</li>
+			<li class="tag">Seguridad Cloud</li>
+			<li class="tag">CI/CD</li>
+			<li class="tag">IA aplicada a Cloud</li>
+			<li class="tag">Networking / IaC</li>
+		</ul>
+	</section>
+
+	<section>
+		<h2>Proyectos</h2>
+		<ul class="project-list">
+			<li>
+				<a href="https://github.com/jalcalaroot/azure-virtual-network">azure-virtual-network</a>
+				<p>
+					Capa de red en Azure — VNet, subnets por tier, NSGs, Key Vault y
+					Storage Account tras Private Endpoints, como Terraform IaC.
+				</p>
+			</li>
+			<li>
+				<a href="https://github.com/jalcalaroot/azure-tfstate-bootstrap">azure-tfstate-bootstrap</a>
+				<p>Bootstrap del backend remoto de Terraform state en Azure Blob Storage.</p>
+			</li>
+			<li>
+				<a href="https://github.com/jalcalaroot/azure-jumpbox-server">azure-jumpbox-server</a>
+				<p>Servidor jumpbox/bastion desplegado en la subnet de aplicación.</p>
+			</li>
+		</ul>
 	</section>
 
 	{
@@ -84,7 +126,8 @@ const posts = (await getCollection('blog'))
 	}
 
 	.tagline {
-		font-size: 1.125rem;
+		font-size: 1rem;
+		line-height: 1.5;
 		color: var(--text-muted);
 		margin: 0 0 1rem;
 	}
@@ -130,5 +173,48 @@ const posts = (await getCollection('blog'))
 		color: var(--text-muted);
 		font-size: 0.875rem;
 		white-space: nowrap;
+	}
+
+	.skills {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.6rem;
+		list-style: none;
+		padding: 0;
+		margin: 0;
+	}
+
+	.tag {
+		font-size: 0.85rem;
+		color: var(--text);
+		border: 1px solid var(--border);
+		background: var(--bg-subtle);
+		border-radius: 4px;
+		padding: 0.3rem 0.7rem;
+	}
+
+	.project-list {
+		list-style: none;
+		padding: 0;
+		margin: 0;
+	}
+
+	.project-list li {
+		padding: 0.8rem 0;
+		border-bottom: 1px solid var(--border);
+	}
+
+	.project-list li:last-child {
+		border-bottom: none;
+	}
+
+	.project-list a {
+		font-weight: 700;
+	}
+
+	.project-list p {
+		margin: 0.35rem 0 0;
+		color: var(--text-muted);
+		font-size: 0.95rem;
 	}
 </style>
