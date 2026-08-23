@@ -9,7 +9,7 @@ const posts = (await getCollection('blog')).sort(
 
 <Layout title="Blog — Johan Alcalá">
 	<nav class="nav">
-		<a href="/">← Inicio</a>
+		<a href="/">← Home</a>
 	</nav>
 
 	<h1>Blog</h1>
@@ -21,7 +21,7 @@ const posts = (await getCollection('blog')).sort(
 					<a href={`/blog/${post.id}/`}>{post.data.title}</a>
 					<p>{post.data.description}</p>
 					<time datetime={post.data.pubDate.toISOString()}>
-						{post.data.pubDate.toLocaleDateString('es', {
+						{post.data.pubDate.toLocaleDateString('en-US', {
 							year: 'numeric',
 							month: 'long',
 							day: 'numeric',

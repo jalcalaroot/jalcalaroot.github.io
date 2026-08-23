@@ -26,12 +26,12 @@ const posts = (await getCollection('blog'))
 
 	<section>
 		<p>
-			Diseño y opero infraestructura en la nube a nivel arquitectura —
-			multicloud (Azure y AWS), redes, cómputo y bases de datos como código
-			con Terraform y Kubernetes. Me enfoco en que esa infraestructura sea
-			segura por diseño: DevSecOps integrado al pipeline, no como un paso
-			aparte, y cada vez más apoyado en IA para acelerar el diseño, la
-			detección de problemas y la toma de decisiones en arquitecturas cloud.
+			I design and operate cloud infrastructure at the architecture level —
+			multicloud (Azure and AWS), networking, compute, and databases as code
+			with Terraform and Kubernetes. I focus on making that infrastructure
+			secure by design: DevSecOps built into the pipeline, not bolted on
+			afterward, and increasingly powered by AI to speed up design, catch
+			issues earlier, and support decision-making in cloud architecture.
 		</p>
 	</section>
 
@@ -43,30 +43,51 @@ const posts = (await getCollection('blog'))
 			<li class="tag">Terraform</li>
 			<li class="tag">Kubernetes</li>
 			<li class="tag">DevSecOps</li>
-			<li class="tag">Seguridad Cloud</li>
+			<li class="tag">Cloud Security</li>
 			<li class="tag">CI/CD</li>
-			<li class="tag">IA aplicada a Cloud</li>
+			<li class="tag">AI for Cloud</li>
 			<li class="tag">Networking / IaC</li>
 		</ul>
 	</section>
 
 	<section>
-		<h2>Proyectos</h2>
+		<h2>Projects</h2>
 		<ul class="project-list">
 			<li>
 				<a href="https://github.com/jalcalaroot/azure-virtual-network">azure-virtual-network</a>
 				<p>
-					Capa de red en Azure — VNet, subnets por tier, NSGs, Key Vault y
-					Storage Account tras Private Endpoints, como Terraform IaC.
+					Azure network layer — VNet, per-tier subnets, NSGs, Key Vault and
+					Storage Account behind Private Endpoints, as Terraform IaC.
 				</p>
 			</li>
 			<li>
-				<a href="https://github.com/jalcalaroot/azure-tfstate-bootstrap">azure-tfstate-bootstrap</a>
-				<p>Bootstrap del backend remoto de Terraform state en Azure Blob Storage.</p>
+				<a href="https://github.com/jalcalaroot/azure-lb-webserver">azure-lb-webserver</a>
+				<p>
+					Public Application Gateway (L7, multi-AZ) load balancing Nginx VMs
+					across availability zones.
+				</p>
 			</li>
 			<li>
 				<a href="https://github.com/jalcalaroot/azure-jumpbox-server">azure-jumpbox-server</a>
-				<p>Servidor jumpbox/bastion desplegado en la subnet de aplicación.</p>
+				<p>Jumpbox/bastion server deployed into the app subnet.</p>
+			</li>
+			<li>
+				<a href="https://github.com/jalcalaroot/eks-fargate-cloudformation">eks-fargate-cloudformation</a>
+				<p>Serverless EKS cluster on Fargate, provisioned with CloudFormation.</p>
+			</li>
+			<li>
+				<a href="https://github.com/jalcalaroot/gateway-load-balancer-demo-cloudformation">gateway-load-balancer-demo-cloudformation</a>
+				<p>
+					Multi-AZ VPC with Transit Gateway and Gateway Load Balancer routing
+					traffic through firewall appliances.
+				</p>
+			</li>
+			<li>
+				<a href="https://github.com/jalcalaroot/infraestructura-aws">infraestructura-aws</a>
+				<p>
+					Modular CloudFormation IaC (VPC, bastion host, Directory Service,
+					WorkSpaces) with GitHub Actions CI/CD, Checkov, and Infracost.
+				</p>
 			</li>
 		</ul>
 	</section>
@@ -74,13 +95,13 @@ const posts = (await getCollection('blog'))
 	{
 		posts.length > 0 && (
 			<section>
-				<h2>Últimos posts</h2>
+				<h2>Latest posts</h2>
 				<ul class="post-list">
 					{posts.map((post) => (
 						<li>
 							<a href={`/blog/${post.id}/`}>{post.data.title}</a>
 							<time datetime={post.data.pubDate.toISOString()}>
-								{post.data.pubDate.toLocaleDateString('es', {
+								{post.data.pubDate.toLocaleDateString('en-US', {
 									year: 'numeric',
 									month: 'long',
 									day: 'numeric',
@@ -90,7 +111,7 @@ const posts = (await getCollection('blog'))
 						</li>
 					))}
 				</ul>
-				<a href="/blog/">Ver todos los posts →</a>
+				<a href="/blog/">View all posts →</a>
 			</section>
 		)
 	}
