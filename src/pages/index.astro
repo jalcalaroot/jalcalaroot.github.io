@@ -17,7 +17,7 @@ const posts = (await getCollection('blog'))
 			<span aria-hidden="true">·</span>
 			<a href="https://www.linkedin.com/in/johan-a-3b582270/">LinkedIn</a>
 			<span aria-hidden="true">·</span>
-			<a href="mailto:johanalcala104@gmail.com">Email</a>
+			<span class="email">johanalcala104@gmail.com</span>
 		</p>
 	</header>
 
@@ -96,6 +96,11 @@ const posts = (await getCollection('blog'))
 	.links span {
 		color: var(--border);
 		margin: 0 0.5rem;
+	}
+
+	.links .email {
+		color: var(--text);
+		margin: 0;
 	}
 
 	section {
