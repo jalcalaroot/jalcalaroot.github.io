@@ -1,0 +1,63 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import { getCollection, render, type CollectionEntry } from 'astro:content';
+
+export async function getStaticPaths() {
+	const posts = await getCollection('blog');
+	return posts.map((post) => ({
+		params: { slug: post.id },
+		props: { post },
+	}));
+}
+
+const { post } = Astro.props as { post: CollectionEntry<'blog'> };
+const { Content } = await render(post);
+---
+
+<Layout title={`${post.data.title} — Johan Alcalá`} description={post.data.description}>
+	<nav class="nav">
+		<a href="/blog/">← Blog</a>
+	</nav>
+
+	<article>
+		<h1>{post.data.title}</h1>
+		<time datetime={post.data.pubDate.toISOString()}>
+			{post.data.pubDate.toLocaleDateString('es', { year: 'numeric', month: 'long', day: 'numeric', timeZone: 'UTC' })}
+		</time>
+		<div class="content">
+			<Content />
+		</div>
+	</article>
+</Layout>
+
+<style>
+	article time {
+		display: block;
+		color: var(--text-muted);
+		font-size: 0.875rem;
+		margin-bottom: 2rem;
+	}
+
+	.content :global(h2) {
+		margin-top: 2rem;
+	}
+
+	.content :global(pre) {
+		background: var(--bg-subtle);
+		padding: 1rem;
+		border-radius: 6px;
+		overflow-x: auto;
+	}
+
+	.content :global(code) {
+		background: var(--bg-subtle);
+		padding: 0.15em 0.4em;
+		border-radius: 4px;
+		font-size: 0.9em;
+	}
+
+	.content :global(pre code) {
+		background: none;
+		padding: 0;
+	}
+</style>

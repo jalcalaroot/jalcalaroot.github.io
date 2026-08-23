@@ -1,17 +1,111 @@
 ---
+import Layout from '../layouts/Layout.astro';
+import { getCollection } from 'astro:content';
 
+const posts = (await getCollection('blog'))
+	.sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf())
+	.slice(0, 3);
 ---
 
-<html lang="en">
-	<head>
-		<meta charset="utf-8" />
-		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-		<link rel="icon" href="/favicon.ico" />
-		<meta name="viewport" content="width=device-width" />
-		<meta name="generator" content={Astro.generator} />
-		<title>Astro</title>
-	</head>
-	<body>
-		<h1>Astro</h1>
-	</body>
-</html>
+<Layout title="Johan Alcalá">
+	<header>
+		<h1>Johan Alcalá</h1>
+		<p class="tagline">Cloud &amp; DevOps Engineer</p>
+		<p class="links">
+			<a href="https://github.com/jalcalaroot">GitHub</a>
+			<span aria-hidden="true">·</span>
+			<a href="https://www.linkedin.com/in/johan-a-3b582270/">LinkedIn</a>
+			<span aria-hidden="true">·</span>
+			<a href="mailto:johanalcala104@gmail.com">Email</a>
+		</p>
+	</header>
+
+	<section>
+		<p>
+			Trabajo con infraestructura en la nube — Azure, AWS, Terraform y
+			Kubernetes — diseñando y desplegando arquitecturas de red, cómputo y
+			bases de datos como código.
+		</p>
+	</section>
+
+	{
+		posts.length > 0 && (
+			<section>
+				<h2>Últimos posts</h2>
+				<ul class="post-list">
+					{posts.map((post) => (
+						<li>
+							<a href={`/blog/${post.id}/`}>{post.data.title}</a>
+							<time datetime={post.data.pubDate.toISOString()}>
+								{post.data.pubDate.toLocaleDateString('es', {
+									year: 'numeric',
+									month: 'long',
+									day: 'numeric',
+									timeZone: 'UTC',
+								})}
+							</time>
+						</li>
+					))}
+				</ul>
+				<a href="/blog/">Ver todos los posts →</a>
+			</section>
+		)
+	}
+
+	<footer>&copy; {new Date().getFullYear()} Johan Alcalá</footer>
+</Layout>
+
+<style>
+	header {
+		margin-bottom: 3rem;
+	}
+
+	h1 {
+		font-size: 2rem;
+		margin: 0 0 0.25rem;
+	}
+
+	.tagline {
+		font-size: 1.125rem;
+		color: var(--text-muted);
+		margin: 0 0 1rem;
+	}
+
+	.links {
+		font-size: 0.95rem;
+	}
+
+	.links span {
+		color: var(--border);
+		margin: 0 0.5rem;
+	}
+
+	section {
+		margin-bottom: 2.5rem;
+	}
+
+	h2 {
+		font-size: 1.25rem;
+		margin-bottom: 1rem;
+	}
+
+	.post-list {
+		list-style: none;
+		padding: 0;
+		margin: 0 0 1rem;
+	}
+
+	.post-list li {
+		display: flex;
+		justify-content: space-between;
+		gap: 1rem;
+		padding: 0.6rem 0;
+		border-bottom: 1px solid var(--border);
+	}
+
+	.post-list time {
+		color: var(--text-muted);
+		font-size: 0.875rem;
+		white-space: nowrap;
+	}
+</style>
