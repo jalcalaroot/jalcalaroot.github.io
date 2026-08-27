@@ -12,9 +12,23 @@ export async function getStaticPaths() {
 
 const { post } = Astro.props as { post: CollectionEntry<'blog'> };
 const { Content } = await render(post);
+
+const articleSchema = {
+	'@context': 'https://schema.org',
+	'@type': 'BlogPosting',
+	headline: post.data.title,
+	description: post.data.description,
+	datePublished: post.data.pubDate.toISOString(),
+	author: { '@type': 'Person', name: 'Johan Alcalá' },
+	url: new URL(`/blog/${post.id}/`, Astro.site).toString(),
+};
 ---
 
-<Layout title={`${post.data.title} — Johan Alcalá`} description={post.data.description}>
+<Layout
+	title={`${post.data.title} — Johan Alcalá`}
+	description={post.data.description}
+	schema={articleSchema}
+>
 	<nav class="nav">
 		<a href="/blog/">← Blog</a>
 	</nav>
