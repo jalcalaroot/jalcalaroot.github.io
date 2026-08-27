@@ -1,0 +1,61 @@
+---
+import Layout from '../layouts/Layout.astro';
+---
+
+<Layout title="404 — Johan Alcalá" description="Page not found.">
+	<p class="prompt">guest@jalcalaroot:~$ cat <span id="path">this-page</span></p>
+	<p class="output">cat: <span id="path2">this-page</span>: No such file or directory</p>
+
+	<h1>404<span class="cursor">_</span></h1>
+	<p class="tagline">That route doesn't exist. Try one of these instead:</p>
+
+	<ul class="links">
+		<li><a href="/">~/</a></li>
+		<li><a href="/blog/">~/blog</a></li>
+	</ul>
+</Layout>
+
+<script src="/404.js" is:inline></script>
+
+<style>
+	.prompt {
+		color: var(--text-muted);
+		font-size: 0.9rem;
+		margin: 0 0 0.4rem;
+	}
+
+	.output {
+		color: var(--text-muted);
+		font-size: 0.9rem;
+		margin: 0 0 2.5rem;
+	}
+
+	h1 {
+		font-size: 3rem;
+		margin: 0 0 0.5rem;
+	}
+
+	.cursor {
+		display: inline-block;
+		animation: blink 1s steps(1) infinite;
+	}
+
+	@keyframes blink {
+		50% {
+			opacity: 0;
+		}
+	}
+
+	.tagline {
+		color: var(--text-muted);
+		margin: 0 0 1.5rem;
+	}
+
+	.links {
+		list-style: none;
+		padding: 0;
+		margin: 0;
+		display: flex;
+		gap: 1.5rem;
+	}
+</style>
