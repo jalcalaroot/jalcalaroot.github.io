@@ -1,0 +1,4 @@
+Contact: mailto:johanalcala104@gmail.com
+Preferred-Languages: en, es
+Canonical: https://jalcalaroot.github.io/.well-known/security.txt
+Expires: 2027-08-27T00:00:00.000Z
