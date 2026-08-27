@@ -51,6 +51,7 @@ const jsonLdHash = createHash('sha256').update(jsonLdString).digest('base64');
 			http-equiv="Content-Security-Policy"
 			content={`default-src 'self'; script-src 'self' 'sha256-${jsonLdHash}'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self'; base-uri 'self'; form-action 'self'; object-src 'none';`}
 		/>
+		<meta name="referrer" content="strict-origin-when-cross-origin" />
 
 		<script type="application/ld+json" set:html={jsonLdString} />
 
