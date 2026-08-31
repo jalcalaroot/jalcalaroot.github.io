@@ -1,5 +1,5 @@
 ---
-title: "Grounding Claude Code in Real Cloud State with MCP Servers"
+title: "What 4 MCP Servers Actually Change When You're Managing Real Infra"
 description: What actually changes when an agent writing Terraform can check the registry, the live account, and the repo instead of working from memory.
 pubDate: 2026-08-27
 ---
