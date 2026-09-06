@@ -52,6 +52,8 @@ const posts = (await getCollection('blog'))
 
 	<section>
 		<h2>Some of my projects</h2>
+
+		<h3>Networking</h3>
 		<ul class="project-list">
 			<li>
 				<a href="https://github.com/jalcalaroot/azure-virtual-network">azure-virtual-network</a>
@@ -61,47 +63,23 @@ const posts = (await getCollection('blog'))
 				</p>
 			</li>
 			<li>
-				<a href="https://github.com/jalcalaroot/azure-lb-webserver">azure-lb-webserver</a>
+				<a href="https://github.com/jalcalaroot/aws-vpc">aws-vpc</a>
 				<p>
-					Public Application Gateway (L7, multi-AZ) load balancing Nginx VMs
-					across availability zones.
+					AWS network layer — VPC across 4 tiers × 3 Availability Zones
+					(public, compute, data, transit), NAT Gateway, Transit Gateway
+					attachment, as Terraform IaC.
 				</p>
 			</li>
-			<li>
-				<a href="https://github.com/jalcalaroot/azure-jumpbox-server">azure-jumpbox-server</a>
-				<p>Jumpbox/bastion server deployed into the app subnet.</p>
-			</li>
-			<li>
-				<a href="https://github.com/jalcalaroot/azure-mysql-database">azure-mysql-database</a>
-				<p>
-					MySQL Flexible Server fully private via Private Endpoint, attaching
-					into the existing data subnet with no public network access.
-				</p>
-			</li>
+		</ul>
+
+		<h3>Containers</h3>
+		<ul class="project-list">
 			<li>
 				<a href="https://github.com/jalcalaroot/azure-container-apps">azure-container-apps</a>
 				<p>
 					Container on an internal-only Azure Container Apps environment,
 					exposed through Application Gateway with a Let's Encrypt
 					certificate issued via DNS-01 into Key Vault.
-				</p>
-			</li>
-			<li>
-				<a href="https://github.com/jalcalaroot/eks-fargate-cloudformation">eks-fargate-cloudformation</a>
-				<p>Serverless EKS cluster on Fargate, provisioned with CloudFormation.</p>
-			</li>
-			<li>
-				<a href="https://github.com/jalcalaroot/gateway-load-balancer-demo-cloudformation">gateway-load-balancer-demo-cloudformation</a>
-				<p>
-					Multi-AZ VPC with Transit Gateway and Gateway Load Balancer routing
-					traffic through firewall appliances.
-				</p>
-			</li>
-			<li>
-				<a href="https://github.com/jalcalaroot/infraestructura-aws">infraestructura-aws</a>
-				<p>
-					Modular CloudFormation IaC (VPC, bastion host, Directory Service,
-					WorkSpaces) with GitHub Actions CI/CD, Checkov, and Infracost.
 				</p>
 			</li>
 		</ul>
@@ -189,6 +167,16 @@ const posts = (await getCollection('blog'))
 	h2 {
 		font-size: 1.25rem;
 		margin-bottom: 1rem;
+	}
+
+	h3 {
+		font-size: 1rem;
+		color: var(--text-muted);
+		margin: 1.5rem 0 0.75rem;
+	}
+
+	h3:first-of-type {
+		margin-top: 0;
 	}
 
 	.post-list {
