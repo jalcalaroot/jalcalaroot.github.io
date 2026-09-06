@@ -1,138 +1,38 @@
 ---
 title: "Azure Container Apps Behind Application Gateway"
-description: Terraform architecture for an internal-only Container Apps Environment exposed through Application Gateway — DNS-01 certificates into Key Vault, per-resource RBAC for CI, and the exact gotchas that broke the first three apply attempts.
+description: The internal-only environment setting that makes an NSG actually mean something, a Let's Encrypt certificate that never touches a file, and the three failures that got there — a 403, a 301 loop, and an empty certificate attribute.
 pubDate: 2026-09-06
 ---
 
-Terraform module that puts a container on the public internet from Azure without exposing the Container Apps Environment itself. Stack: Container Apps (Consumption), Application Gateway v2, a dedicated ACR, a dedicated Key Vault, and a Let's Encrypt certificate issued via DNS-01. GitHub Actions applies it via OIDC, no stored Azure credentials.
+I wanted a reusable pattern for putting a container on the public internet from Azure without punching a hole straight through the network I'd already spent time locking down. The stack ended up being Container Apps (Consumption), Application Gateway, a dedicated ACR and Key Vault, and a Let's Encrypt certificate issued through Terraform — all applied via GitHub Actions over OIDC. The container itself is a hello-world; the plumbing around it is the part meant to be reused.
 
-```
-                              Internet
-                                 |
-                    Application Gateway (public IP)
-                    TLS termination + HTTP -> HTTPS redirect
-                                 |
-                    ───── VNet-internal only below this line ─────
-                                 |
-              Container Apps Environment (internal, Consumption)
-                                 |
-                    Container App (nginx:alpine, port 80)
-```
+## The setting that decides whether the NSG means anything
 
-## Resources
-
-| Resource | Config |
-|---|---|
-| `azurerm_container_app_environment` | `internal_load_balancer_enabled = true`, Consumption workload profile, joined to an existing subnet |
-| `azurerm_container_app` | Single revision, `min_replicas = 1` / `max_replicas = 2`, pulls from ACR via managed identity |
-| `azurerm_container_registry` | Basic SKU, `admin_enabled = false` |
-| `azurerm_key_vault` | RBAC-authorized, `public_network_access_enabled = true`, purge protection off |
-| `azurerm_application_gateway` | Standard_v2 (no WAF), one public listener on 443, one HTTP listener that only redirects |
-| `acme_certificate` (`vancluever/acme`) | DNS-01 against an existing Azure DNS zone |
-| `azurerm_user_assigned_identity` x4 | 2 workload identities (ACR pull, Key Vault read) + 2 CI identities (agent, plan) |
-
-## Why the environment is internal, not external
-
-Container Apps has two ingress modes for the environment. External routes inbound traffic through a Microsoft-managed public IP that never touches your VNet's subnet — it bypasses the subnet's NSG entirely. That makes the NSG on that subnet decorative for anything arriving that way. Internal keeps the environment's only address inside the VNet:
+Container Apps gives you two ways to expose the environment: external or internal. External sounds like the obvious pick for something public-facing, until you read what it actually does — inbound traffic for an external, workload-profile environment routes through a Microsoft-managed public IP that never touches your VNet's subnet. It skips the subnet's NSG entirely. If the rest of your infrastructure assumes that NSG is actually restricting something, an external environment quietly makes it decorative.
 
 ```hcl
 resource "azurerm_container_app_environment" "this" {
   infrastructure_subnet_id       = var.network_containerapps_subnet_id
   internal_load_balancer_enabled = true
-  logs_destination                = "log-analytics"
-  log_analytics_workspace_id      = var.network_log_analytics_workspace_id
-
-  workload_profile {
-    name                  = "Consumption"
-    workload_profile_type = "Consumption"
-  }
+  # ...
 }
 ```
 
-Consequence: an internal environment doesn't register its FQDN anywhere the VNet can resolve. You have to create the Private DNS Zone yourself, named exactly after `default_domain`, link it to the VNet, and add a wildcard record — otherwise Application Gateway can never resolve the Container App's hostname:
+One flag, and the environment's only address is private, inside the VNet. That forces something else to be the actual front door — Application Gateway, which ends up doing double duty as both the one public IP in the whole stack and the place TLS terminates. Everything behind it is a plain HTTP hop, because the certificate work already happened.
 
-```hcl
-resource "azurerm_private_dns_zone" "containerapps" {
-  name                = azurerm_container_app_environment.this.default_domain
-  resource_group_name = azurerm_resource_group.this.name
-}
+An internal environment doesn't register its FQDN anywhere the VNet can resolve, either — that's a separate Private DNS Zone you have to create yourself, named exactly after the environment's `default_domain` and linked to the VNet by hand. Skip it and Application Gateway can reach the environment's IP but never resolve its hostname.
 
-resource "azurerm_private_dns_zone_virtual_network_link" "containerapps" {
-  private_dns_zone_id  = azurerm_private_dns_zone.containerapps.id
-  virtual_network_id   = var.network_vnet_id
-  registration_enabled = false
-}
+## A certificate that never touches a file
 
-resource "azurerm_private_dns_a_record" "containerapps_wildcard" {
-  name                = "*"
-  private_dns_zone_id = azurerm_private_dns_zone.containerapps.id
-  ttl                 = 300
-  records             = [azurerm_container_app_environment.this.static_ip_address]
-}
+The TLS certificate comes from Let's Encrypt via a DNS-01 challenge against a zone I already control, issued through the `vancluever/acme` Terraform provider and imported straight into a dedicated Key Vault. Application Gateway reads it from there through its own managed identity, scoped to exactly one permission: read that vault's secrets. No `.pfx` ever sits on a laptop or in a CI artifact.
+
+Two things about that pipeline weren't obvious until they broke a real apply. First, the certificate resource has to generate its own private key from `common_name` — feed it an external CSR instead (`certificate_request_pem` + `tls_cert_request`) and the `certificate_p12` attribute it produces comes back silently empty. Nothing errors at that resource. The failure surfaces one step later, when Key Vault refuses to import an empty certificate:
+
+```
+Error: expected "certificate.0.contents" to not be an empty string
 ```
 
-## Gotcha: the 301 loop between App Gateway and the Container App
-
-Application Gateway terminates TLS and talks HTTP to the backend — the container app never sees TLS at all, `backend_http_settings` uses `protocol = "Http"` on port 80. But Container Apps' edge proxy enforces HTTPS by default and 301-redirects any plain HTTP request back to its own FQDN. App Gateway just relays that redirect to the client. Symptom: the site loads with a valid certificate and correct hostname, then serves a 301 to `https://<container-app-fqdn>.internal...` instead of the page. Fix is one flag on the ingress block:
-
-```hcl
-ingress {
-  external_enabled           = true # reachable from outside the environment (App Gateway) - the environment itself stays internal-only
-  target_port                = 80
-  allow_insecure_connections = true # TLS already terminated at App Gateway; this hop is HTTP inside the VNet
-  traffic_weight {
-    latest_revision = true
-    percentage      = 100
-  }
-}
-```
-
-## Certificate pipeline: DNS-01 into Key Vault, no file ever touches disk
-
-`vancluever/acme`'s `azuredns` provider resolves the DNS-01 challenge against an existing, already-delegated Azure DNS zone, using the same `az login` credentials `azurerm` already has — no separate service principal:
-
-```hcl
-resource "acme_certificate" "this" {
-  account_key_pem           = acme_registration.this.account_key_pem
-  common_name               = local.fqdn
-  key_type                  = "RSA2048"
-  certificate_p12_password  = random_password.pfx.result
-
-  dns_challenge {
-    provider = "azuredns"
-    config = {
-      AZURE_ZONE_NAME       = data.azurerm_dns_zone.this.name
-      AZURE_RESOURCE_GROUP  = data.azurerm_dns_zone.this.resource_group_name
-      AZURE_SUBSCRIPTION_ID = var.subscription_id
-    }
-  }
-}
-```
-
-**Gotcha**: `certificate_p12` — the attribute imported into Key Vault below — comes back **empty** if the certificate is requested via an external CSR (`certificate_request_pem` + `tls_cert_request`). It's only populated when `acme_certificate` generates its own key from `common_name`. The failure doesn't surface on this resource; it surfaces one resource downstream with `"certificate.0.contents" to not be an empty string`. Cost one full failed apply to trace back.
-
-```hcl
-resource "azurerm_key_vault_certificate" "this" {
-  name         = "cert-${var.dns_record_name}"
-  key_vault_id = azurerm_key_vault.this.id
-  certificate {
-    contents = acme_certificate.this.certificate_p12
-    password = random_password.pfx.result
-  }
-  depends_on = [time_sleep.wait_for_kv_rbac]
-}
-```
-
-Application Gateway then reads the secret directly by ID — no copy, no re-upload:
-
-```hcl
-ssl_certificate {
-  name                = "ssl-hello-world"
-  key_vault_secret_id = azurerm_key_vault_certificate.this.secret_id
-}
-```
-
-**Gotcha**: RBAC propagation lag. Role assignments can take up to a couple of minutes to actually take effect in Azure, even though they show up as created in Terraform state immediately. The first apply that reads the vault's data plane — the cert import above, or App Gateway resolving `secret_id` — can 403 without warning. Fix is a plain wait, not a retry loop:
+Second, Azure role assignments don't take effect the instant Terraform reports them created. The first apply that touches the vault's data plane — the certificate import, or Application Gateway resolving the secret — can 403 even though the role assignment already shows up in state:
 
 ```hcl
 resource "time_sleep" "wait_for_kv_rbac" {
@@ -144,22 +44,27 @@ resource "time_sleep" "wait_for_kv_rbac" {
 }
 ```
 
-## RBAC: two CI identities, scoped per resource, not per resource group
+Not elegant, but accurate — it's a real propagation window, not a race condition to code around.
 
-Two user-assigned identities authenticate GitHub Actions via OIDC — no stored secrets. Unlike the shared network project's identities (Contributor over an entire shared resource group), both of these are scoped to exactly the resources this project touches:
+## The 301 loop nobody warns you about
 
-| Role | Scope | Identity |
-|---|---|---|
-| Contributor / Reader | This project's resource group | agent / plan |
-| DNS Zone Contributor / Reader | The one DNS zone record needed | agent / plan |
-| Network Contributor | The one subnet the environment joins | agent only |
-| Storage Blob Data Contributor | State storage account (blob lease locking needs write even for `plan`) | agent + plan |
-| Reader | State storage account, management plane (`Microsoft.Storage/storageAccounts/read`) | agent + plan |
-| Log Analytics Contributor / Reader | The shared Log Analytics workspace | agent / plan |
-| Key Vault Reader | This project's Key Vault | plan only |
+Application Gateway's backend settings talk to the container app over plain HTTP — TLS already terminated upstream, and the whole hop lives inside the VNet. Container Apps' own edge proxy doesn't know that: it enforces HTTPS by default and 301-redirects any HTTP request back to its own FQDN. Application Gateway just relays that redirect to the client instead of following it.
 
-**Gotcha**: `Storage Blob Data Contributor` is a data-plane role — reading/writing blobs. It does **not** cover the management-plane read (`Microsoft.Storage/storageAccounts/read`) that Terraform's own `data "azurerm_storage_account" "tfstate"` needs to resolve. Without a separate `Reader` at that scope, the first plan/apply for any new identity fails with `AuthorizationFailed` on that data source alone — everything else in the config is fine.
+The symptom is the deceptive part — the site loads, with a valid certificate and the right hostname, and then quietly serves a 301 pointing at a hostname the visitor was never supposed to see. It took comparing the redirect target byte-for-byte against the container app's internal FQDN to realize the page was never actually being served. The fix is one flag on the ingress block:
 
-## What's out of scope
+```hcl
+ingress {
+  target_port                = 80
+  allow_insecure_connections = true # TLS already terminated at App Gateway; this hop is plain HTTP inside the VNet
+}
+```
 
-WAF on Application Gateway (`Standard_v2`, not `WAF_v2` — cost decision, one-line change if needed), autoscaling beyond `min_replicas`/`max_replicas`, multi-region. Full variable reference and RBAC breakdown: [azure-container-apps](https://github.com/jalcalaroot/azure-container-apps).
+## CI identities that can't wander outside their lane
+
+Two managed identities authenticate GitHub Actions to Azure over OIDC — no stored secrets. The part worth calling out is how narrowly each is scoped: not Contributor on a shared resource group, but Contributor on *this project's own* resource group, `DNS Zone Contributor` on the one DNS record it needs, `Network Contributor` on the one subnet it joins. Nothing here can reach the shared virtual network or any other project's resources, so a compromised workflow here has a small blast radius by construction.
+
+That precision has a cost — every new resource type this project touches means checking whether the CI identity actually has the specific permission for it, and more than once it didn't. The one that actually broke a pipeline run: `Storage Blob Data Contributor` on the state storage account covers the data-plane blob operations Terraform needs for locking, but not the separate management-plane read (`Microsoft.Storage/storageAccounts/read`) that Terraform's own data source uses to look the account up in the first place. Without a plain `Reader` at that same scope, the very first plan for a brand-new identity fails with `AuthorizationFailed` on a data source, before touching a single real resource.
+
+## What's actually reusable
+
+The hello-world container was never the point. What's worth carrying into whatever runs on Container Apps next is the shape around it: internal-only compute with a single gateway as the only public surface, a certificate that lives in a vault instead of a file, and CI identities that can't touch anything beyond what they were explicitly granted. The [full Terraform](https://github.com/jalcalaroot/azure-container-apps) is the reference if any of those pieces need copying wholesale.
