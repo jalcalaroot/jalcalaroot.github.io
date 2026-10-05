@@ -1,0 +1,136 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import { getCollection } from 'astro:content';
+
+const items = (await getCollection('news')).sort(
+	(a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf(),
+);
+const label = { aws: 'AWS', azure: 'Azure' } as const;
+---
+
+<Layout
+	title="Cloud News — Johan Alcalá"
+	description="AWS and Azure announcements, read from an architect's seat: what changed, why it matters, and the security and cost angle."
+>
+	<nav class="nav">
+		<a href="/">← Home</a>
+	</nav>
+
+	<p class="prompt">guest@jalcalaroot:~$ tail -f /var/log/cloud-news</p>
+	<h1>Cloud News</h1>
+	<p class="intro">
+		AWS and Azure announcements, read from an architect's seat: what changed,
+		why it matters, and the security and cost angle.{' '}
+		<a href="/news/rss.xml">RSS feed</a>
+	</p>
+
+	<div class="filters" role="group" aria-label="Filter by provider">
+		<button type="button" data-filter="all" aria-pressed="true">all</button>
+		<button type="button" data-filter="aws" aria-pressed="false">aws</button>
+		<button type="button" data-filter="azure" aria-pressed="false">azure</button>
+	</div>
+
+	{items.length === 0 && <p class="empty">No entries yet.</p>}
+
+	<ul class="news-list">
+		{
+			items.map((item) => (
+				<li data-provider={item.data.provider}>
+					<div class="meta">
+						<span class={`badge ${item.data.provider}`}>{label[item.data.provider]}</span>
+						<time datetime={item.data.pubDate.toISOString()}>
+							{item.data.pubDate.toLocaleDateString('en-US', {
+								year: 'numeric',
+								month: 'short',
+								day: 'numeric',
+								timeZone: 'UTC',
+							})}
+						</time>
+					</div>
+					<a href={`/news/${item.id}/`}>{item.data.title}</a>
+					<p>{item.data.description}</p>
+				</li>
+			))
+		}
+	</ul>
+</Layout>
+
+<script src="/news-filter.js" is:inline defer></script>
+
+<style>
+	.prompt {
+		color: var(--text-muted);
+		font-size: 0.875rem;
+		margin: 0 0 0.5rem;
+	}
+
+	.intro {
+		color: var(--text-muted);
+	}
+
+	.filters {
+		display: flex;
+		gap: 0.5rem;
+		margin: 1.5rem 0 0.5rem;
+	}
+
+	.filters button {
+		font: inherit;
+		font-size: 0.85rem;
+		color: var(--text-muted);
+		background: transparent;
+		border: 1px solid var(--border);
+		border-radius: 4px;
+		padding: 0.25rem 0.8rem;
+		cursor: pointer;
+	}
+
+	.filters button[aria-pressed='true'] {
+		color: var(--accent);
+		border-color: var(--accent);
+		background: var(--bg-subtle);
+	}
+
+	.news-list {
+		list-style: none;
+		padding: 0;
+		margin: 1rem 0 2rem;
+	}
+
+	.news-list li {
+		padding: 1.1rem 0;
+		border-bottom: 1px solid var(--border);
+	}
+
+	.meta {
+		display: flex;
+		align-items: center;
+		gap: 0.75rem;
+		margin-bottom: 0.35rem;
+	}
+
+	.meta time {
+		font-size: 0.8rem;
+		color: var(--text-muted);
+	}
+
+	.news-list a {
+		font-size: 1.05rem;
+		font-weight: 600;
+		color: var(--text);
+	}
+
+	.news-list a:hover {
+		color: var(--accent);
+	}
+
+	.news-list p {
+		margin: 0.35rem 0 0;
+		color: var(--text-muted);
+		font-size: 0.95rem;
+	}
+
+	.empty {
+		color: var(--text-muted);
+	}
+</style>
