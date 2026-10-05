@@ -5,6 +5,10 @@ import { getCollection } from 'astro:content';
 const posts = (await getCollection('blog'))
 	.sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf())
 	.slice(0, 3);
+
+const news = (await getCollection('news'))
+	.sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf())
+	.slice(0, 5);
 ---
 
 <Layout title="Johan Alcalá">
@@ -121,6 +125,34 @@ const posts = (await getCollection('blog'))
 		)
 	}
 
+	{
+		news.length > 0 && (
+			<section>
+				<h2>Cloud news</h2>
+				<ul class="post-list">
+					{news.map((item) => (
+						<li>
+							<span class="news-title">
+								<span class={`badge ${item.data.provider}`}>
+									{item.data.provider === 'aws' ? 'AWS' : 'Azure'}
+								</span>
+								<a href={`/news/${item.id}/`}>{item.data.title}</a>
+							</span>
+							<time datetime={item.data.pubDate.toISOString()}>
+								{item.data.pubDate.toLocaleDateString('en-US', {
+									month: 'short',
+									day: 'numeric',
+									timeZone: 'UTC',
+								})}
+							</time>
+						</li>
+					))}
+				</ul>
+				<a href="/news/">All AWS &amp; Azure news →</a>
+			</section>
+		)
+	}
+
 	<footer>&copy; {new Date().getFullYear()} Johan Alcalá</footer>
 </Layout>
 
@@ -209,6 +241,12 @@ const posts = (await getCollection('blog'))
 		color: var(--text-muted);
 		font-size: 0.875rem;
 		white-space: nowrap;
+	}
+
+	.news-title {
+		display: flex;
+		align-items: baseline;
+		gap: 0.6rem;
 	}
 
 	.skills {

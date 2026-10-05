@@ -46,6 +46,12 @@ const jsonLdHash = createHash('sha256').update(jsonLdString).digest('base64');
 			title="Johan Alcalá — Blog"
 			href={new URL('/rss.xml', Astro.site)}
 		/>
+		<link
+			rel="alternate"
+			type="application/rss+xml"
+			title="Johan Alcalá — Cloud News"
+			href={new URL('/news/rss.xml', Astro.site)}
+		/>
 
 		<meta
 			http-equiv="Content-Security-Policy"
@@ -178,6 +184,29 @@ const jsonLdHash = createHash('sha256').update(jsonLdString).digest('base64');
 		border-top: 1px solid var(--border);
 		color: var(--text-muted);
 		font-size: 0.875rem;
+	}
+
+	.badge {
+		display: inline-block;
+		font-size: 0.7rem;
+		font-weight: 700;
+		letter-spacing: 0.06em;
+		text-transform: uppercase;
+		border-radius: 3px;
+		padding: 0.1rem 0.45rem;
+		border: 1px solid;
+	}
+
+	.badge.aws {
+		color: #ff9900;
+		border-color: rgba(255, 153, 0, 0.5);
+		background: rgba(255, 153, 0, 0.08);
+	}
+
+	.badge.azure {
+		color: #4fb3ff;
+		border-color: rgba(79, 179, 255, 0.5);
+		background: rgba(79, 179, 255, 0.08);
 	}
 
 	::selection {
