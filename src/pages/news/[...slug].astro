@@ -1,0 +1,97 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import { getCollection, render, type CollectionEntry } from 'astro:content';
+
+export async function getStaticPaths() {
+	const items = await getCollection('news');
+	return items.map((item) => ({
+		params: { slug: item.id },
+		props: { item },
+	}));
+}
+
+const { item } = Astro.props as { item: CollectionEntry<'news'> };
+const { Content } = await render(item);
+const label = item.data.provider === 'aws' ? 'AWS' : 'Azure';
+
+const articleSchema = {
+	'@context': 'https://schema.org',
+	'@type': 'NewsArticle',
+	headline: item.data.title,
+	description: item.data.description,
+	datePublished: item.data.pubDate.toISOString(),
+	author: { '@type': 'Person', name: 'Johan Alcalá' },
+	url: new URL(`/news/${item.id}/`, Astro.site).toString(),
+	citation: item.data.source,
+};
+---
+
+<Layout
+	title={`${item.data.title} — Cloud News`}
+	description={item.data.description}
+	schema={articleSchema}
+>
+	<nav class="nav">
+		<a href="/news/">← Cloud News</a>
+	</nav>
+
+	<article>
+		<div class="meta">
+			<span class={`badge ${item.data.provider}`}>{label}</span>
+			<time datetime={item.data.pubDate.toISOString()}>
+				{item.data.pubDate.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric', timeZone: 'UTC' })}
+			</time>
+		</div>
+		<h1>{item.data.title}</h1>
+		<div class="content">
+			<Content />
+		</div>
+		<p class="source">
+			Source: <a href={item.data.source} rel="noopener">{new URL(item.data.source).hostname}</a>
+		</p>
+	</article>
+</Layout>
+
+<style>
+	.meta {
+		display: flex;
+		align-items: center;
+		gap: 0.75rem;
+	}
+
+	.meta time {
+		color: var(--text-muted);
+		font-size: 0.875rem;
+	}
+
+	.content :global(h2) {
+		margin-top: 2rem;
+	}
+
+	.content :global(pre) {
+		background: var(--bg-subtle);
+		padding: 1rem;
+		border-radius: 6px;
+		overflow-x: auto;
+	}
+
+	.content :global(code) {
+		background: var(--bg-subtle);
+		padding: 0.15em 0.4em;
+		border-radius: 4px;
+		font-size: 0.9em;
+	}
+
+	.content :global(pre code) {
+		background: none;
+		padding: 0;
+	}
+
+	.source {
+		margin-top: 2.5rem;
+		padding-top: 1rem;
+		border-top: 1px solid var(--border);
+		color: var(--text-muted);
+		font-size: 0.9rem;
+	}
+</style>
